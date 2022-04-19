@@ -23,6 +23,7 @@ var (
 func newDaemonCommand() (*cobra.Command, error) {
 	opts := newDaemonOptions(config.New())
 
+    //newcode
 	cmd := &cobra.Command{
 		Use:           "dockerd [OPTIONS]",
 		Short:         "A self-sufficient runtime for containers. (a change to the engine/daemon)",
