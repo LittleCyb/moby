@@ -22,6 +22,7 @@ import (
 	"github.com/opencontainers/selinux/go-selinux"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
+	"github.com/docker/go-connections/nat"
 	archvariant "github.com/tonistiigi/go-archvariant"
 )
 
@@ -117,6 +118,56 @@ func (daemon *Daemon) create(opts createOpts) (retC *container.Container, retErr
 		err   error
 		os    = runtime.GOOS
 	)
+
+	logrus.Debug("\n\nInitial Config: \n")
+	logrus.Debugf("opts.params.HostConfig.PortBindings: %+v \n", opts.params.HostConfig.PortBindings)
+	logrus.Debugf("opts.params.Config.ExposedPorts: %+v \n", opts.params.Config.ExposedPorts)		
+
+	logrus.Debug("\n///////////////////////////\n")
+	logrus.Debug("Looping through PortBindings")
+	// loops over keys and values in the map
+	for k, v := range opts.params.HostConfig.PortBindings {
+		logrus.Debugf("%v is key and %+v is value\n", k, v)
+		for _, v1 := range v {
+			logrus.Debugf("HostIp: %v\n", v1.HostIP)
+			logrus.Debugf("HostPort: %v\n", v1.HostPort)
+		}
+	}
+
+	logrus.Debug("\n///////////////////////////\n")
+	logrus.Debug("Looping through ExposedPorts")
+	// loops over keys and values in the map
+	for k, v := range opts.params.Config.ExposedPorts {
+		logrus.Debugf("%v is key and %+v is value\n", k, v)
+	}
+ 	
+ 	logrus.Debug("\n///////////////////////////\n")
+	const address string = ":8080:80/tcp"
+	logrus.Debugf("address: %s\n", address)
+	portTEST, err := nat.ParsePortSpec(address)
+	logrus.Debugf("portTEST: %+v\n", portTEST)
+
+	logrus.Debug("\n///////////////////////////\n")
+	logrus.Debug("Making changes\n")
+	logrus.Debugf("Adding 70/tcp:[{HostIP: HostPort:7070}] to the existing opts.params.HostConfig.PortBindings\n")
+	var testaddress []nat.PortBinding
+	testaddress0 := nat.PortBinding{HostIP: "", HostPort: "7070"}	
+	testaddress = append(testaddress, testaddress0)
+	const port nat.Port = "70/tcp"
+	opts.params.HostConfig.PortBindings[port] = testaddress
+
+	logrus.Debug("\n///////////////////////////\n")
+	logrus.Debug("Making more changes\n")
+	logrus.Debugf("Adding 70/tcp:{} to the existing opts.params.Config.ExposedPorts\n")
+	opts.params.Config.ExposedPorts[port] = struct{}{}
+
+
+	logrus.Debug("\n///////////////////////////\n")
+	logrus.Debug("Post changes config: \n")
+	logrus.Debugf("opts.params.HostConfig.PortBindings: %+v \n", opts.params.HostConfig.PortBindings)
+	logrus.Debugf("opts.params.Config.ExposedPorts: %+v \n", opts.params.Config.ExposedPorts)
+
+	logrus.Debug("\n///////////////////////////\n\n\n\n\n")
 
 	if opts.params.Config.Image != "" {
 		img, err = daemon.imageService.GetImage(opts.params.Config.Image, opts.params.Platform)
