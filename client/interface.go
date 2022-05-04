@@ -17,6 +17,7 @@ import (
 	"github.com/docker/docker/api/types/swarm"
 	volumetypes "github.com/docker/docker/api/types/volume"
 	specs "github.com/opencontainers/image-spec/specs-go/v1"
+    "github.com/docker/go-connections/nat"
 )
 
 // CommonAPIClient is the common methods between stable and experimental versions of APIClient.
@@ -69,7 +70,7 @@ type ContainerAPIClient interface {
 	ContainerStatPath(ctx context.Context, container, path string) (types.ContainerPathStat, error)
 	ContainerStats(ctx context.Context, container string, stream bool) (types.ContainerStats, error)
 	ContainerStatsOneShot(ctx context.Context, container string) (types.ContainerStats, error)
-	ContainerStart(ctx context.Context, container string, options types.ContainerStartOptions) error
+	ContainerStart(ctx context.Context, container string, options types.ContainerStartOptions, exposedPorts map[nat.Port]struct{}, portBindings map[nat.Port][]nat.PortBinding) error
 	ContainerStop(ctx context.Context, container string, timeout *time.Duration) error
 	ContainerTop(ctx context.Context, container string, arguments []string) (containertypes.ContainerTopOKBody, error)
 	ContainerUnpause(ctx context.Context, container string) error

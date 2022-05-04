@@ -25,6 +25,7 @@ import (
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 	"golang.org/x/net/websocket"
+    "github.com/docker/go-connections/nat"
 )
 
 func (s *containerRouter) postCommit(ctx context.Context, w http.ResponseWriter, r *http.Request, vars map[string]string) error {
@@ -183,23 +184,34 @@ func (s *containerRouter) postContainersStart(ctx context.Context, w http.Respon
 	// including r.TransferEncoding
 	// allow a nil body for backwards compatibility
 
-	version := httputils.VersionFromContext(ctx)
+	//////////version := httputils.VersionFromContext(ctx) //temporary fix
 	var hostConfig *container.HostConfig
-	// A non-nil json object is at least 7 characters.
+    var exposedPorts map[nat.Port]struct{}
+	var portBindings map[nat.Port][]nat.PortBinding 
+	
+    // A non-nil json object is at least 7 characters.
 	if r.ContentLength > 7 || r.ContentLength == -1 {
-		if versions.GreaterThanOrEqualTo(version, "1.24") {
-			return bodyOnStartError{}
-		}
+		/*.GreaterThanOrEqualTo(version, "1.24") {
+			return bodyOnStartError{} //temporary fix
+		}*/
+
 
 		if err := httputils.CheckForJSON(r); err != nil {
 			return err
 		}
 
-		c, err := s.decoder.DecodeHostConfig(r.Body)
+		a, b, err := s.decoder.DecodePortConfig(r.Body)
+        if err != nil {
+			return err
+		}
+        exposedPorts = a
+        portBindings = b
+        
+        c, err := s.decoder.DecodeHostConfig(r.Body)
 		if err != nil {
 			return err
 		}
-		hostConfig = c
+		hostConfig = c 
 	}
 
 	if err := httputils.ParseForm(r); err != nil {
@@ -208,7 +220,7 @@ func (s *containerRouter) postContainersStart(ctx context.Context, w http.Respon
 
 	checkpoint := r.Form.Get("checkpoint")
 	checkpointDir := r.Form.Get("checkpoint-dir")
-	if err := s.backend.ContainerStart(vars["name"], hostConfig, checkpoint, checkpointDir); err != nil {
+	if err := s.backend.ContainerStart(vars["name"], hostConfig, checkpoint, checkpointDir, exposedPorts, portBindings); err != nil {
 		return err
 	}
 

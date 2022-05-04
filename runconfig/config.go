@@ -7,12 +7,18 @@ import (
 	"github.com/docker/docker/api/types/container"
 	networktypes "github.com/docker/docker/api/types/network"
 	"github.com/docker/docker/pkg/sysinfo"
+    "github.com/docker/go-connections/nat"
 )
 
 // ContainerDecoder implements httputils.ContainerDecoder
 // calling DecodeContainerConfig.
 type ContainerDecoder struct {
 	GetSysInfo func() *sysinfo.SysInfo
+}
+
+type portConfigWrapper struct {
+	ExposedPorts	map[nat.Port]struct{}
+	PortBindings	map[nat.Port][]nat.PortBinding
 }
 
 // DecodeConfig makes ContainerDecoder to implement httputils.ContainerDecoder
@@ -32,6 +38,16 @@ func (r ContainerDecoder) DecodeHostConfig(src io.Reader) (*container.HostConfig
 	return decodeHostConfig(src)
 }
 
+// DecodePortConfig makes ContainerDecoder to implement httputils.ContainerDecoder]
+func (r ContainerDecoder) DecodePortConfig(src io.Reader) (map[nat.Port]struct{}, map[nat.Port][]nat.PortBinding, error) {
+    var si *sysinfo.SysInfo
+	    if r.GetSysInfo != nil {
+		    si = r.GetSysInfo()
+	    } else {
+		    si = sysinfo.New()
+	    }  
+    return decodePortConfig(src, si)
+}
 // decodeContainerConfig decodes a json encoded config into a ContainerConfigWrapper
 // struct and returns both a Config and a HostConfig struct, and performs some
 // validation. Certain parameters need daemon-side validation that cannot be done
@@ -86,4 +102,22 @@ func loadJSON(src io.Reader, out interface{}) error {
 		return validationError("unexpected content after JSON")
 	}
 	return nil
+}
+
+// decodePortConfig decodes a json encoded config into a portConfigWrapper
+// struct and returns both an ExposedPorts and PortBindings map, and performs zero validation
+
+// the choice to return *container.Config.ExposedPorts and ...PortBindings was taken to avoid having to state the types here.
+func decodePortConfig(src io.Reader, si *sysinfo.SysInfo) (map[nat.Port]struct{}, map[nat.Port][]nat.PortBinding, error) {
+	var w portConfigWrapper
+	if err := loadJSON(src, &w); err != nil {
+		return nil, nil, err
+	}
+
+	if w.ExposedPorts == nil || w.PortBindings == nil {
+		// We may not be passed a host config, such as in the case of docker commit
+		return w.ExposedPorts, w.PortBindings, nil
+    }
+
+	return w.ExposedPorts, w.PortBindings, nil
 }

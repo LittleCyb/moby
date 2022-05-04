@@ -22,7 +22,6 @@ import (
 	"github.com/opencontainers/selinux/go-selinux"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
-	"github.com/docker/go-connections/nat"
 	archvariant "github.com/tonistiigi/go-archvariant"
 )
 
@@ -119,6 +118,7 @@ func (daemon *Daemon) create(opts createOpts) (retC *container.Container, retErr
 		os    = runtime.GOOS
 	)
 
+	/*
 	logrus.Debug("\n\nInitial Config: \n")
 	logrus.Debugf("opts.params.HostConfig.PortBindings: %+v \n", opts.params.HostConfig.PortBindings)
 	logrus.Debugf("opts.params.Config.ExposedPorts: %+v \n", opts.params.Config.ExposedPorts)		
@@ -168,6 +168,7 @@ func (daemon *Daemon) create(opts createOpts) (retC *container.Container, retErr
 	logrus.Debugf("opts.params.Config.ExposedPorts: %+v \n", opts.params.Config.ExposedPorts)
 
 	logrus.Debug("\n///////////////////////////\n\n\n\n\n")
+	*/
 
 	if opts.params.Config.Image != "" {
 		img, err = daemon.imageService.GetImage(opts.params.Config.Image, opts.params.Platform)
