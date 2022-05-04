@@ -10,6 +10,7 @@ import (
 	"github.com/docker/docker/api/types/filters"
 	containerpkg "github.com/docker/docker/container"
 	"github.com/docker/docker/pkg/archive"
+    "github.com/docker/go-connections/nat"
 )
 
 // execBackend includes functions to implement to provide exec functionality.
@@ -39,7 +40,8 @@ type stateBackend interface {
 	ContainerResize(name string, height, width int) error
 	ContainerRestart(name string, seconds *int) error
 	ContainerRm(name string, config *types.ContainerRmConfig) error
-	ContainerStart(name string, hostConfig *container.HostConfig, checkpoint string, checkpointDir string) error
+	ContainerStart(name string, hostConfig *container.HostConfig, checkpoint string, checkpointDir string, exposedPorts map[nat.Port]struct{}, portBindings map[nat.Port][]nat.PortBinding) error
+    //////ContainerStart(name string, hostConfig *container.HostConfig, checkpoint string, checkpointDir string) error
 	ContainerStop(name string, seconds *int) error
 	ContainerUnpause(name string) error
 	ContainerUpdate(name string, hostConfig *container.HostConfig) (container.ContainerUpdateOKBody, error)
