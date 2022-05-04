@@ -109,15 +109,11 @@ func loadJSON(src io.Reader, out interface{}) error {
 
 // the choice to return *container.Config.ExposedPorts and ...PortBindings was taken to avoid having to state the types here.
 func decodePortConfig(src io.Reader, si *sysinfo.SysInfo) (map[nat.Port]struct{}, map[nat.Port][]nat.PortBinding, error) {
+	
 	var w portConfigWrapper
 	if err := loadJSON(src, &w); err != nil {
 		return nil, nil, err
 	}
-
-	if w.ExposedPorts == nil || w.PortBindings == nil {
-		// We may not be passed a host config, such as in the case of docker commit
-		return w.ExposedPorts, w.PortBindings, nil
-    }
 
 	return w.ExposedPorts, w.PortBindings, nil
 }
