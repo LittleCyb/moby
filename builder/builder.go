@@ -15,7 +15,6 @@ import (
 	"github.com/docker/docker/image"
 	"github.com/docker/docker/layer"
 	"github.com/docker/docker/pkg/containerfs"
-    "github.com/docker/go-connections/nat"
 )
 
 const (
@@ -68,7 +67,7 @@ type ExecBackend interface {
 	// ContainerKill stops the container execution abruptly.
 	ContainerKill(containerID string, sig uint64) error
 	// ContainerStart starts a new container
-	ContainerStart(containerID string, hostConfig *container.HostConfig, checkpoint string, checkpointDir string, exposedPorts map[nat.Port]struct{}, portBindings map[nat.Port][]nat.PortBinding) error
+	ContainerStart(containerID string, hostConfig *container.HostConfig, checkpoint string, checkpointDir string) error
 	// ContainerWait stops processing until the given container is stopped.
 	ContainerWait(ctx context.Context, name string, condition containerpkg.WaitCondition) (<-chan containerpkg.StateStatus, error)
 }

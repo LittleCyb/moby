@@ -24,7 +24,6 @@ import (
 	volumeopts "github.com/docker/docker/volume/service/opts"
 	"github.com/docker/swarmkit/agent/exec"
 	specs "github.com/opencontainers/image-spec/specs-go/v1"
-    "github.com/docker/go-connections/nat"
 )
 
 // Backend defines the executor component for a swarm agent.
@@ -35,7 +34,7 @@ type Backend interface {
 	SetupIngress(clustertypes.NetworkCreateRequest, string) (<-chan struct{}, error)
 	ReleaseIngress() (<-chan struct{}, error)
 	CreateManagedContainer(config types.ContainerCreateConfig) (container.ContainerCreateCreatedBody, error)
-	ContainerStart(name string, hostConfig *container.HostConfig, checkpoint string, checkpointDir string, exposedPorts map[nat.Port]struct{}, portBindings map[nat.Port][]nat.PortBinding) error
+	ContainerStart(name string, hostConfig *container.HostConfig, checkpoint string, checkpointDir string) error
 	ContainerStop(name string, seconds *int) error
 	ContainerLogs(context.Context, string, *types.ContainerLogsOptions) (msgs <-chan *backend.LogMessage, tty bool, err error)
 	ConnectContainerToNetwork(containerName, networkName string, endpointConfig *network.EndpointSettings) error
