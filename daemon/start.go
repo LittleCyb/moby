@@ -11,13 +11,12 @@ import (
 	"github.com/docker/docker/errdefs"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
-	//////"github.com/docker/go-connections/nat"
-	//////, exposedPorts map[nat.Port]struct{}, portBindings map[nat.Port][]nat.PortBinding
+	"github.com/docker/go-connections/nat"
 )
 
 
 // ContainerStart starts a container.
-func (daemon *Daemon) ContainerStart(name string, hostConfig *containertypes.HostConfig, checkpoint string, checkpointDir string) error {
+func (daemon *Daemon) ContainerStart(name string, hostConfig *containertypes.HostConfig, checkpoint string, checkpointDir string, exposedPorts map[nat.Port]struct{}, portBindings map[nat.Port][]nat.PortBinding) error {
 	if checkpoint != "" && !daemon.HasExperimental() {
 		return errdefs.InvalidParameter(errors.New("checkpoint is only supported in experimental mode"))
 	}
