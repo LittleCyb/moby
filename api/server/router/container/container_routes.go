@@ -209,11 +209,16 @@ func (s *containerRouter) postContainersStart(ctx context.Context, w http.Respon
         portBindings = b  
 
 
+
+        //caused issue when DecodeHostConfig eventually called loadJOSN. Was only kept for backward compatability reasons.
+        /*
         c, err := s.decoder.DecodeHostConfig(r.Body)
 		if err != nil {
 			return err
 		}
 		hostConfig = c 
+		*/
+		hostConfig = nil
 	}
 
 	if err := httputils.ParseForm(r); err != nil {

@@ -4,6 +4,7 @@ import (
 	"context"
 	"runtime"
 	"time"
+	"fmt"
 
 	"github.com/docker/docker/api/types"
 	containertypes "github.com/docker/docker/api/types/container"
@@ -47,6 +48,17 @@ func (daemon *Daemon) ContainerStart(name string, hostConfig *containertypes.Hos
 	if err := validateState(); err != nil {
 		return err
 	}
+
+	fmt.Println("\n\n\n(/daemon/start.go)ExposedPorts is parsed and transported from CLI to start.go in daemon\nExposedPorts: ", exposedPorts)
+	fmt.Println("\n\n\n(/daemon/start.go)PortBindigns is parsed and transported from CLI to start.go in daemon\nPortBindings: ", portBindings)
+
+
+	/*
+	// Insert new mappings
+	if len(exposedPorts) != 0 && len(portBindings) != 0 {
+		ctr.Config.ExposedPorts = exposedPorts
+		ctr.HostConfig.PortBindings = portBindings
+	}*/
 
 	// Windows does not have the backwards compatibility issue here.
 	if runtime.GOOS != "windows" {

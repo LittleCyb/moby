@@ -3,6 +3,7 @@ package runconfig // import "github.com/docker/docker/runconfig"
 import (
 	"encoding/json"
 	"io"
+	"fmt"
 
 	"github.com/docker/docker/api/types/container"
 	networktypes "github.com/docker/docker/api/types/network"
@@ -17,8 +18,8 @@ type ContainerDecoder struct {
 }
 
 type portConfigWrapper struct {
-	ExposedPorts	map[nat.Port]struct{}
-	PortBindings	map[nat.Port][]nat.PortBinding
+	ExposedPorts	*map[nat.Port]struct{}
+	PortBindings	*map[nat.Port][]nat.PortBinding
 }
 
 // DecodeConfig makes ContainerDecoder to implement httputils.ContainerDecoder
@@ -38,7 +39,7 @@ func (r ContainerDecoder) DecodeHostConfig(src io.Reader) (*container.HostConfig
 	return decodeHostConfig(src)
 }
 
-// DecodePortConfig makes ContainerDecoder to implement httputils.ContainerDecoder]
+// DecodePortConfig makes ContainerDecoder to implement httputils.ContainerDecoder
 func (r ContainerDecoder) DecodePortConfig(src io.Reader) (map[nat.Port]struct{}, map[nat.Port][]nat.PortBinding, error) {
     var si *sysinfo.SysInfo
 	    if r.GetSysInfo != nil {
@@ -89,11 +90,25 @@ func decodeContainerConfig(src io.Reader, si *sysinfo.SysInfo) (*container.Confi
 	return w.Config, hc, w.NetworkingConfig, nil
 }
 
+// decodePortConfig decodes a json encoded config into a portConfigWrapper
+// struct and returns both an ExposedPorts and PortBindings map, and performs zero validation
+func decodePortConfig(src io.Reader, si *sysinfo.SysInfo) (map[nat.Port]struct{}, map[nat.Port][]nat.PortBinding, error) {
+	var w portConfigWrapper
+	if err := loadJSON(src, &w); err != nil {
+		return nil, nil, err
+	}
+
+	fmt.Println("\n(config.go)decodePortConfig returns *w.ExposedPorts: ", *w.ExposedPorts)
+	fmt.Println("\n(config.go)decodePortConfig returns *w.PortBindings: ", *w.PortBindings)
+	return *w.ExposedPorts, *w.PortBindings, nil
+}
+
 // loadJSON is similar to api/server/httputils.ReadJSON()
 func loadJSON(src io.Reader, out interface{}) error {
 	dec := json.NewDecoder(src)
 	if err := dec.Decode(&out); err != nil {
 		if err == io.EOF {
+			fmt.Println("\n(config.go)returns invalid JSON inside loadJSON()\n")
 			return validationError("invalid JSON: got EOF while reading request body")
 		}
 		return validationError("invalid JSON: " + err.Error())
@@ -102,18 +117,4 @@ func loadJSON(src io.Reader, out interface{}) error {
 		return validationError("unexpected content after JSON")
 	}
 	return nil
-}
-
-// decodePortConfig decodes a json encoded config into a portConfigWrapper
-// struct and returns both an ExposedPorts and PortBindings map, and performs zero validation
-
-// the choice to return *container.Config.ExposedPorts and ...PortBindings was taken to avoid having to state the types here.
-func decodePortConfig(src io.Reader, si *sysinfo.SysInfo) (map[nat.Port]struct{}, map[nat.Port][]nat.PortBinding, error) {
-	
-	var w portConfigWrapper
-	if err := loadJSON(src, &w); err != nil {
-		return nil, nil, err
-	}
-
-	return w.ExposedPorts, w.PortBindings, nil
 }
