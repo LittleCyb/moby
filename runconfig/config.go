@@ -3,7 +3,6 @@ package runconfig // import "github.com/docker/docker/runconfig"
 import (
 	"encoding/json"
 	"io"
-	"fmt"
 
 	"github.com/docker/docker/api/types/container"
 	networktypes "github.com/docker/docker/api/types/network"
@@ -98,8 +97,9 @@ func decodePortConfig(src io.Reader, si *sysinfo.SysInfo) (map[nat.Port]struct{}
 		return nil, nil, err
 	}
 
-	fmt.Println("\n(config.go)decodePortConfig returns *w.ExposedPorts: ", *w.ExposedPorts)
-	fmt.Println("\n(config.go)decodePortConfig returns *w.PortBindings: ", *w.PortBindings)
+	//Debug statements
+	//fmt.Println("\n(config.go)decodePortConfig returns *w.ExposedPorts: ", *w.ExposedPorts)
+	//fmt.Println("\n(config.go)decodePortConfig returns *w.PortBindings: ", *w.PortBindings)
 	return *w.ExposedPorts, *w.PortBindings, nil
 }
 
@@ -108,7 +108,6 @@ func loadJSON(src io.Reader, out interface{}) error {
 	dec := json.NewDecoder(src)
 	if err := dec.Decode(&out); err != nil {
 		if err == io.EOF {
-			fmt.Println("\n(config.go)returns invalid JSON inside loadJSON()\n")
 			return validationError("invalid JSON: got EOF while reading request body")
 		}
 		return validationError("invalid JSON: " + err.Error())
